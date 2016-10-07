@@ -9,16 +9,14 @@ var self          = require('sdk/self'),
   tabs          = require('sdk/tabs'),
   timers        = require('sdk/timers');
 
-exports.contentScript = (function () {
-  pageMod.PageMod({
-    include: [
-      'https://www.youtube.com/*'
-    ],
-    contentScriptFile: [data.url('./content_script/inject.js')],
-    contentScriptWhen: 'start',
-    attachTo: ['top', 'existing']
-  });
-})();
+pageMod.PageMod({
+  include: [
+    'https://www.youtube.com/*'
+  ],
+  contentScriptFile: [data.url('./content_script/inject.js')],
+  contentScriptWhen: 'start',
+  attachTo: ['top', 'existing']
+});
 
 exports.storage = {
   read: function (id) {

@@ -2,7 +2,8 @@
 
 var script = document.createElement('script');
 script.textContent = `
-  function onYouTubePlayerReady (e) {
+  var yttools = yttools || [];
+  yttools.push(function (e) {
     try {
       let pathname = document.location.pathname;
       if (pathname.startsWith('/user') || pathname.startsWith('/channel')) {
@@ -10,7 +11,11 @@ script.textContent = `
       }
     }
     catch(e) {}
+  });
+  function onYouTubePlayerReady (e) {
+    yttools.forEach(c => c(e));
   }
+
   (function (observe) {
     observe(window, 'ytplayer', (ytplayer) => {
       observe(ytplayer, 'config', (config) => {

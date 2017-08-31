@@ -14,6 +14,8 @@ script.textContent = `
       return yttools.playlist || href.indexOf('&list=') === -1 || href.indexOf('&index=') === -1;
     };
 
+    // Method 0
+    e.stopVideo();
     // Method 1; prevent polymer from starting video
     const playVideo = e.playVideo;
     e.playVideo = function() {
@@ -26,7 +28,7 @@ script.textContent = `
       playVideo.apply(this, arguments);
     };
     // Method 2; stop subsequent plays
-    document.addEventListener('yt-page-data-fetched', () => policy() && e.stopVideo());
+    document.addEventListener('yt-page-data-fetched', () => policy() && e.stopVideo && e.stopVideo());
 
     // visibility
     document.addEventListener('visibilitychange', () => {

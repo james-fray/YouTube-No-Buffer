@@ -5,10 +5,7 @@ script.textContent = `
   var yttools = yttools || [];
   yttools.push(function (e) {
     try {
-      let pathname = document.location.pathname;
-      if (pathname.startsWith('/user') || pathname.startsWith('/channel')) {
-        e.stopVideo();
-      }
+      e.stopVideo();
     }
     catch(e) {}
   });

@@ -2,13 +2,33 @@
 
 var script = document.createElement('script');
 script.textContent = `
-  var yttools = yttools || [];
-  yttools.playlist = false;
-  yttools.visible = false;
-  yttools.hidden = false;
+  var yttools = Object.assign(window.yttools || [], {
+    playlist: false,
+    visible: false,
+    hidden: false
+  });
 
   yttools.push(e => {
-    const pathname = document.location.pathname;
+    const policy = () => {
+      const href = document.location.href;
+      return yttools.playlist || href.indexOf('&list=') === -1 || href.indexOf('&index=') === -1;
+    };
+
+    // Method 1; prevent polymer from starting video
+    const playVideo = e.playVideo;
+    e.playVideo = function() {
+      if (policy()) {
+        const err = new Error().stack;
+        if (err && err.indexOf('onPlayerReady_') !== -1) {
+          return e.stopVideo();
+        }
+      }
+      playVideo.apply(this, arguments);
+    };
+    // Method 2; stop subsequent plays
+    document.addEventListener('yt-page-data-fetched', () => policy() && e.stopVideo());
+
+    // visibility
     document.addEventListener('visibilitychange', () => {
       if (yttools.visible && document.visibilityState === 'visible') {
         e.playVideo();
@@ -20,36 +40,33 @@ script.textContent = `
         e.pauseVideo();
       }
     });
-    if (pathname.startsWith('/user') || pathname.startsWith('/channel')) {
-      try {
-        e.stopVideo();
-      }
-      catch (e) {}
-    }
-    // Polymer interface
-    function stop() {
-      if (
-        !yttools.playlist &&
-        document.location.href.indexOf('&list=') !== -1 &&
-        document.location.href.indexOf('&index=') !== -1
-      ) {
-        return;
-      }
-      e.stopVideo();
-    }
-    document.addEventListener('yt-page-data-fetched', stop);
-    stop();
   });
+
   function onYouTubePlayerReady(e) {
     yttools.forEach(c => c(e));
   }
 
-  (function(observe) {
+  {
+    function observe(object, property, callback) {
+      let value;
+      const descriptor = Object.getOwnPropertyDescriptor(object, property);
+      Object.defineProperty(object, property, {
+        enumerable: true,
+        configurable: true,
+        get: () => value,
+        set: v => {
+          callback(v);
+          if (descriptor && descriptor.set) {
+            descriptor.set(v);
+          }
+          value = v;
+          return value;
+        }
+      });
+    }
     observe(window, 'ytplayer', ytplayer => {
       observe(ytplayer, 'config', config => {
         if (config && config.args) {
-          delete config.args.ad3_module;
-
           Object.defineProperty(config.args, 'autoplay', {
             configurable: true,
             get: () => '0'
@@ -59,37 +76,8 @@ script.textContent = `
         }
       });
     });
-  })(function(object, property, callback) {
-    let value;
-    const descriptor = Object.getOwnPropertyDescriptor(object, property);
-    Object.defineProperty(object, property, {
-      enumerable: true,
-      configurable: true,
-      get: () => value,
-      set: v => {
-        callback(v);
-        if (descriptor && descriptor.set) {
-          descriptor.set(v);
-        }
-        value = v;
-        return value;
-      }
-    });
-  });
-  // HTML5 spf forward
-  document.addEventListener('spfpartprocess', e => {
-    if (e.detail && e.detail.part && e.detail.part.data && e.detail.part.data.swfcfg) {
-      delete e.detail.part.data.swfcfg.args.ad3_module;
-      if (
-        !yttools.playlist &&
-        document.location.href.indexOf('&list=') !== -1 &&
-        document.location.href.indexOf('&index=') !== -1
-      ) {
-        return;
-      }
-      e.detail.part.data.swfcfg.args.autoplay = '0';
-    }
-  });
+  }
+
   // prefs
   window.addEventListener('message', e => {
     if (e.data && e.data.cmd === 'pref-changed') {

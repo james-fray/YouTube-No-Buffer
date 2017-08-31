@@ -4,7 +4,7 @@
   "description": "A bulletproof approach to prevent YouTube from buffering videos",
   "id": "jid0-zxGf4jM5hHg1dJ5Gf1H7NfFfe76@jetpack",
   "license": "Mozilla Public License, version 2.0",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "author": "James Fray",
   "main": "lib/common.js",
   "url": "http://firefox.add0n.com/no-buffer.html",

@@ -8,7 +8,7 @@ var prefs = {
   embedded: true
 };
 
-function observe (d) {
+function observe(d) {
   let url = d.url;
   if (url.indexOf('autoplay=') !== -1) {
     url = url.replace('autoplay=1', 'autoplay=0');
@@ -16,9 +16,11 @@ function observe (d) {
   if (prefs.enablejs === false) {
     url = url.replace('enablejsapi=1', 'enablejsapi=0');
   }
-  return {
-    redirectUrl: url
-  };
+  if (d.url !== url) {
+    return {
+      redirectUrl: url
+    };
+  }
 }
 var properties = {
   urls: [
@@ -26,7 +28,7 @@ var properties = {
   ]
 };
 
-function update () {
+function update() {
   if (prefs.embedded && !installed) {
     chrome.webRequest.onBeforeRequest.addListener(observe, properties, ['blocking']);
     installed = true;
@@ -63,7 +65,7 @@ chrome.storage.local.get('version', prefs => {
     });
   }
 });
-(function () {
-  let {name, version} = chrome.runtime.getManifest();
+{
+  const {name, version} = chrome.runtime.getManifest();
   chrome.runtime.setUninstallURL('http://add0n.com/feedback.html?name=' + name + '&version=' + version);
-})();
+}

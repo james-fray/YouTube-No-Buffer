@@ -3,11 +3,6 @@
 <head>
   <title>YouTube™ No Buffer Options</title>
   <style>
-    body {
-      padding: 10px;
-      font-family: "Helvetica Neue",Helvetica,sans-serif;
-      font-size: 13px;
-    }
     .notes {
       font-size: 80%;
     }
@@ -16,10 +11,6 @@
 
 <body>
   <p>
-    <label><input type="checkbox" id="embedded"> Stop auto-buffering of embedded YouTube players</label>
-    <br>
-    <label><input type="checkbox" id="enablejs"> Allow JavaScript access for embedded YouTube players (some websites use JavaScript to start the player)</label>
-    <br>
     <label><input type="checkbox" id="playlist"> Stop auto-buffering the player on play-list mode</label>
     <br>
     <label><input type="checkbox" id="visible"> Release no-buffer (start playing) when tab gets focus<sup>1</sup></label>
@@ -32,7 +23,8 @@
     2: If this option is checked and [1] is checked too, YouTube player gets paused when tab is hidden and it gets resumed when tab is active again.
   </p>
   <div>
-    <button id="save">Save</button>
+    <button id="support">Support Development</button>
+    <button id="reset">Reset</button> - <button id="save">Save</button>
     <span id="status"></span>
   </div>
 

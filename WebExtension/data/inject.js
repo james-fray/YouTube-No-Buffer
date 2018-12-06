@@ -1,112 +1,91 @@
 'use strict';
 
+var prefs = {
+  playlist: false,
+  visible: false,
+  hidden: false
+};
+
 var script = document.createElement('script');
+// pause the video if spfready is not yet emitted and video is not a playlist
+{
+  const canplay = e => {
+    document.removeEventListener('canplay', canplay);
+    if (script.dataset.act !== 'true') {
+      const href = location.href;
+      if (prefs.playlist === false && (href.indexOf('&list=') !== -1 || href.indexOf('&index=') !== -1)) {
+        return;
+      }
+      e.target.pause();
+    }
+  };
+  document.addEventListener('canplay', canplay, true);
+}
+
+Object.assign(script.dataset, prefs);
 script.textContent = `
-  var yttools = Object.assign(window.yttools || [], {
-    playlist: false,
-    visible: false,
-    hidden: false
-  });
+  var yttools = window.yttools || [];
+  yttools.noBuffer = {
+    prefs: document.currentScript.dataset
+  };
 
   yttools.push(e => {
     const policy = () => {
-      const href = document.location.href;
-      return yttools.playlist || href.indexOf('&list=') === -1 || href.indexOf('&index=') === -1;
+      const prefs = yttools.noBuffer.prefs;
+      const href = location.href;
+      return prefs.playlist === 'true' || href.indexOf('&list=') === -1 || href.indexOf('&index=') === -1;
     };
-
-    // Method 0
-    e.stopVideo();
-    // Method 1; prevent polymer from starting video
-    const playVideo = e.playVideo;
-    e.playVideo = function() {
-      if (policy()) {
-        const err = new Error().stack;
-        if (err && err.indexOf('onPlayerReady_') !== -1) {
-          return e.stopVideo();
-        }
+    const stop = () => {
+      if (e.stopVideo) {
+        yttools.noBuffer.prefs.act = true;
+        e.stopVideo();
       }
-      playVideo.apply(this, arguments);
     };
-    // Method 2; stop subsequent plays
-    document.addEventListener('yt-page-data-fetched', () => policy() && e.stopVideo && e.stopVideo());
+    // Method 0
+    stop();
+    // Method 1; stop subsequent plays
+    document.addEventListener('yt-page-data-fetched', () => policy() && stop());
 
     // visibility
     document.addEventListener('visibilitychange', () => {
-      if (yttools.visible && document.visibilityState === 'visible') {
+      const prefs = yttools.noBuffer.prefs;
+      if (prefs.visible === 'true' && document.visibilityState === 'visible') {
         e.playVideo();
-        if (!yttools.hidden) {
-          yttools.visible = false;
+        if (prefs.hidden === 'false') {
+          yttools.noBuffer.prefs.visible = 'false';
         }
       }
-      if (yttools.hidden && document.visibilityState === 'hidden') {
+      if (prefs.hidden === 'true' && document.visibilityState === 'hidden') {
         e.pauseVideo();
       }
     });
   });
 
+  // install listener
   function onYouTubePlayerReady(e) {
-    yttools.forEach(c => c(e));
-  }
-
-  {
-    function observe(object, property, callback) {
-      let value;
-      const descriptor = Object.getOwnPropertyDescriptor(object, property);
-      Object.defineProperty(object, property, {
-        enumerable: true,
-        configurable: true,
-        get: () => value,
-        set: v => {
-          callback(v);
-          if (descriptor && descriptor.set) {
-            descriptor.set(v);
-          }
-          value = v;
-          return value;
-        }
-      });
-    }
-    observe(window, 'ytplayer', ytplayer => {
-      observe(ytplayer, 'config', config => {
-        if (config && config.args) {
-          Object.defineProperty(config.args, 'autoplay', {
-            configurable: true,
-            get: () => '0'
-          });
-          config.args.fflags = config.args.fflags.replace('legacy_autoplay_flag=true', 'legacy_autoplay_flag=false');
-          config.args.jsapicallback = 'onYouTubePlayerReady';
-        }
-      });
+    yttools.forEach(c => {
+      try {
+        c(e);
+      }
+      catch (e) {}
     });
   }
 
-  // prefs
-  window.addEventListener('message', e => {
-    if (e.data && e.data.cmd === 'pref-changed') {
-      yttools = Object.assign(yttools, e.data.prefs);
+  // https://youtube.github.io/spfjs/documentation/events/
+  window.addEventListener('spfready', () => {
+    if (typeof window.ytplayer === 'object' && window.ytplayer.config) {
+      window.ytplayer.config.args.jsapicallback = 'onYouTubePlayerReady';
     }
   });
 `;
 document.documentElement.appendChild(script);
+script.remove();
 
-chrome.storage.local.get({
-  playlist: false,
-  visible: false,
-  hidden: false
-}, prefs => {
-  window.postMessage({
-    cmd: 'pref-changed',
-    prefs
-  }, '*');
+// preferences
+chrome.storage.local.get(prefs, ps => {
+  Object.assign(prefs, ps);
+  Object.entries(prefs).forEach(([key, value]) => script.dataset[key] = value);
 });
-chrome.storage.onChanged.addListener(ps => {
-  const prefs = Object.keys(ps).filter(n => n === 'playlist' || n === 'visible' || n === 'hidden')
-    .reduce((p, n) => {
-      p[n] = ps[n].newValue;
-      return p;
-    }, {});
-  window.postMessage({
-    cmd: 'pref-changed',
-    prefs
-  }, '*');
+chrome.storage.onChanged.addListener(prefs => {
+  Object.entries(prefs).forEach(([key, value]) => script.dataset[key] = value.newValue);
 });

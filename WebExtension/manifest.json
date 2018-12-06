@@ -3,16 +3,13 @@
   "short_name": "ivnbuffer",
   "description": "Prevents YouTube HTML5 and Flash players from auto-buffering (auto-playing) videos",
   "author": "James Fray",
-  "version": "0.2.5",
+  "version": "0.2.7",
   "manifest_version": 2,
   "permissions": [
-    "storage",
-    "tabs",
-    "webRequest",
-    "webRequestBlocking",
-    "*://www.youtube.com/embed/*"
+    "storage"
   ],
   "background": {
+    "persistent": false,
     "scripts": [
       "common.js"
     ]
@@ -38,7 +35,8 @@
   },
   "applications": {
     "gecko": {
-      "id": "{551f032e-353d-4d10-b186-b0026b1a666d}"
+      "id": "{551f032e-353d-4d10-b186-b0026b1a666d}",
+      "strict_min_version": "48.0"
     }
   }
 }

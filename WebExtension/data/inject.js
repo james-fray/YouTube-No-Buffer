@@ -1,12 +1,12 @@
 'use strict';
 
-var prefs = {
+const prefs = {
   playlist: false,
   visible: false,
   hidden: false
 };
 
-var script = document.createElement('script');
+const script = document.createElement('script');
 // pause the video if spfready is not yet emitted and video is not a playlist
 {
   const canplay = e => {

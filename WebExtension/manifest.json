@@ -1,9 +1,8 @@
 {
   "name": "YouTube™ No Buffer (Stop Auto-playing)",
-  "short_name": "ivnbuffer",
   "description": "Prevents YouTube HTML5 and Flash players from auto-buffering (auto-playing) videos",
   "author": "James Fray",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "manifest_version": 2,
   "permissions": [
     "storage"
@@ -22,21 +21,20 @@
     "run_at": "document_start",
     "all_frames": false
   }],
-  "homepage_url": "http://add0n.com/youtube-tools.html?from=buffer",
+  "homepage_url": "https://add0n.com/youtube-tools.html?from=buffer",
   "icons": {
     "16": "data/icons/16.png",
+    "19": "data/icons/19.png",
     "32": "data/icons/32.png",
+    "38": "data/icons/38.png",
     "48": "data/icons/48.png",
-    "128": "data/icons/128.png"
+    "64": "data/icons/64.png",
+    "128": "data/icons/128.png",
+    "256": "data/icons/256.png",
+    "512": "data/icons/512.png"
   },
   "options_ui": {
     "page": "data/options/index.html",
     "chrome_style": true
-  },
-  "applications": {
-    "gecko": {
-      "id": "{551f032e-353d-4d10-b186-b0026b1a666d}",
-      "strict_min_version": "48.0"
-    }
   }
 }

@@ -2,7 +2,7 @@
   "name": "YouTube™ No Buffer (Stop Auto-playing)",
   "description": "Prevents YouTube HTML5 and Flash players from auto-buffering (auto-playing) videos",
   "author": "James Fray",
-  "version": "0.2.8",
+  "version": "0.3.0",
   "manifest_version": 2,
   "permissions": [
     "storage"

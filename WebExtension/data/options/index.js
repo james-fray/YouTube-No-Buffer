@@ -7,11 +7,13 @@ function restore() {
   chrome.storage.local.get({
     playlist: false,
     visible: false,
-    hidden: false
+    hidden: false,
+    method: 'pauseVideo'
   }, prefs => {
     document.getElementById('playlist').checked = prefs.playlist;
     document.getElementById('visible').checked = prefs.visible;
     document.getElementById('hidden').checked = prefs.hidden;
+    document.getElementById('method').checked = prefs.method === 'pauseVideo';
   });
 }
 
@@ -19,13 +21,13 @@ function save() {
   const playlist = document.getElementById('playlist').checked;
   const visible = document.getElementById('visible').checked;
   const hidden = document.getElementById('hidden').checked;
+  const method = document.getElementById('method').checked ? 'pauseVideo' : 'stopVideo';
   chrome.storage.local.set({
     playlist,
     visible,
-    hidden
+    hidden,
+    method
   }, () => {
-    // Update status to let user know options were saved.
-
     status.textContent = 'Options saved.';
     setTimeout(() => status.textContent = '', 750);
   });

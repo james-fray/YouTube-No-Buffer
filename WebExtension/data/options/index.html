@@ -15,16 +15,20 @@
 
 <body>
   <p>
-    <label><input type="checkbox" id="playlist"> Stop auto-buffering the player on play-list mode</label>
+    <label><input type="checkbox" id="playlist"> Stop even on playlists</label>
     <br>
     <label><input type="checkbox" id="visible"> Release no-buffer (start playing) when tab gets focus<sup>1</sup></label>
     <br>
-    <label><input type="checkbox" id="hidden"> Pause video when tab is hidden<sup>2</sup></label>
+    <label><input type="checkbox" id="hidden"> Pause the player when tab is hidden<sup>2</sup></label>
+    <br>
+    <label><input type="checkbox" id="method"> Pause the player instead of stopping it<sup>3</sup></label>
   </p>
   <p class="notes">
-    1: If this option is checked and [2] is unchecked, YouTube player is released from no-buffer mode once.
+    1: If this option is checked and [2] is unchecked, the YouTube player is released from the no-buffer state only once.
     <br>
-    2: If this option is checked and [1] is checked too, YouTube player gets paused when tab is hidden and it gets resumed when tab is active again.
+    2: If this option is checked and [1] is checked too, the YouTube player gets paused when the tab is hidden and it gets resumed when the tab is active again.
+    <br>
+    3: Recently, Ad-blocker extensions do not allow YouTube from fetching video information when the page is already loaded, so stopping the video is not working anymore since the player needs to fetch the video information later. To be compatible with ad-blocker extensions, this extension by default pauses videos instead. If you have whitelisted the blocking rule on your ad-blocker extension, uncheck this option for real no-buffering.
   </p>
   <div id="explore"></div>
   <p>

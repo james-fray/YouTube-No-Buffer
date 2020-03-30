@@ -1,91 +1,67 @@
 'use strict';
 
+// preferences
 const prefs = {
   playlist: false,
   visible: false,
-  hidden: false
+  hidden: false,
+  method: 'pauseVideo'
 };
-
 const script = document.createElement('script');
-// pause the video if spfready is not yet emitted and video is not a playlist
+Object.assign(script.dataset, prefs);
 {
-  const canplay = e => {
-    document.removeEventListener('canplay', canplay);
-    if (script.dataset.act !== 'true') {
-      const href = location.href;
-      if (prefs.playlist === false && (href.indexOf('&list=') !== -1 || href.indexOf('&index=') !== -1)) {
-        return;
-      }
-      e.target.pause();
-    }
+  const play = () => {
+    script.dispatchEvent(new Event('stop'));
+    // document.removeEventListener('play', play, true);
   };
-  document.addEventListener('canplay', canplay, true);
+  document.addEventListener('canplay', play, true);
+  document.addEventListener('yt-navigate-finish', () => {
+    document.removeEventListener('canplay', play, true);
+    document.addEventListener('canplay', play, true);
+    script.dispatchEvent(new Event('stop'));
+  });
+  document.addEventListener('mousedown', () => document.removeEventListener('canplay', play, true));
+  document.addEventListener('keydown', () => document.removeEventListener('canplay', play, true));
+  script.addEventListener('release', () => document.removeEventListener('canplay', play, true));
 }
 
-Object.assign(script.dataset, prefs);
-script.textContent = `
-  var yttools = window.yttools || [];
-  yttools.noBuffer = {
-    prefs: document.currentScript.dataset
+script.textContent = `{
+  const script = document.currentScript;
+  const prefs = script.dataset;
+  const player = () => document.querySelector('.html5-video-player') || {
+    stopVideo: () => {},
+    pauseVideo: () => {},
+    playVideo: () => {}
   };
-
-  yttools.push(e => {
-    const policy = () => {
-      const prefs = yttools.noBuffer.prefs;
-      const href = location.href;
-      return prefs.playlist === 'true' || href.indexOf('&list=') === -1 || href.indexOf('&index=') === -1;
-    };
-    const stop = () => {
-      if (e.stopVideo) {
-        yttools.noBuffer.prefs.act = true;
-        e.stopVideo();
+  const policy = () => {
+    const href = location.href;
+    return prefs.playlist === 'true' || href.indexOf('&list=') === -1 || href.indexOf('&index=') === -1;
+  };
+  const stop = () => {
+    const method = script.dataset.method;
+    if (player().getPlayerState() === -1) {
+      script.dispatchEvent(new Event('release'));
+    }
+    player()[method]();
+  };
+  script.addEventListener('stop', () => policy() && stop());
+  // visibility
+  document.addEventListener('visibilitychange', () => {
+    if (prefs.visible === 'true' && document.visibilityState === 'visible') {
+      player().playVideo();
+      if (prefs.hidden === 'false') {
+        prefs.visible = 'false';
       }
-    };
-    // Method 0
-    stop();
-    // Method 1; stop subsequent plays
-    document.addEventListener('yt-page-data-fetched', () => policy() && stop());
-
-    // visibility
-    document.addEventListener('visibilitychange', () => {
-      const prefs = yttools.noBuffer.prefs;
-      if (prefs.visible === 'true' && document.visibilityState === 'visible') {
-        e.playVideo();
-        if (prefs.hidden === 'false') {
-          yttools.noBuffer.prefs.visible = 'false';
-        }
-      }
-      if (prefs.hidden === 'true' && document.visibilityState === 'hidden') {
-        e.pauseVideo();
-      }
-    });
-  });
-
-  // install listener
-  function onYouTubePlayerReady(e) {
-    yttools.forEach(c => {
-      try {
-        c(e);
-      }
-      catch (e) {}
-    });
-  }
-
-  // https://youtube.github.io/spfjs/documentation/events/
-  window.addEventListener('spfready', () => {
-    if (typeof window.ytplayer === 'object' && window.ytplayer.config) {
-      window.ytplayer.config.args.jsapicallback = 'onYouTubePlayerReady';
+    }
+    if (prefs.hidden === 'true' && document.visibilityState === 'hidden') {
+      player().pauseVideo();
     }
   });
-`;
+}`;
 document.documentElement.appendChild(script);
 script.remove();
-
-// preferences
-chrome.storage.local.get(prefs, ps => {
-  Object.assign(prefs, ps);
-  Object.entries(prefs).forEach(([key, value]) => script.dataset[key] = value);
-});
+// prefs
+chrome.storage.local.get(prefs, prefs => Object.assign(script.dataset, prefs));
 chrome.storage.onChanged.addListener(prefs => {
   Object.entries(prefs).forEach(([key, value]) => script.dataset[key] = value.newValue);
 });
